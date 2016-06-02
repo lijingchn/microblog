@@ -1,0 +1,5 @@
+#!/home/flask_learn/flask/bin/python
+# encoding: utf-8
+
+CSRF_ENABLED = True
+SECRET_KEY = "you-will-never-guess"
