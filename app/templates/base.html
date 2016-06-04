@@ -7,13 +7,16 @@
     {% endif %}
   </head>
   <body>
-    <div>Microblog:<a href="/index">Home</a></div>
+    <div>Microblog:
+      <a href="{{url_for("index")}}">Home</a>
+      {% if g.user.is_authenticated %}
+      | <a href="{{url_for("logout")}}">Logout</a>
+      {% endif %}
+    </div>
     <hr>
-    {% block content %}{% endblock %}
 
     {% with messages=get_flashed_messages() %}
     {% if messages %}
-    <hr>
     <ul>
     {% for message in messages %}
       <li>{{message}}</li>
@@ -22,5 +25,6 @@
     {% endif %}
     {% endwith %}
 
+    {% block content %}{% endblock %}
   </body>
 </html>
