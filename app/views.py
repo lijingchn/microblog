@@ -1,11 +1,12 @@
 #!/home/flask_learn/flask/bin/python
 # encoding:utf-8
 
-from app import app, db, lm, oid
+from app import app, db, lm
 from flask import render_template, flash, redirect, session, url_for, request, g
-from forms import LoginForm
+from forms import LoginForm, RegisterForm, EditForm
 from models import User
 from flask_login import login_user, logout_user, current_user,login_required
+from datetime import datetime
 
 
 
@@ -31,44 +32,49 @@ def index():
     return render_template("index.html", title="Home",user=user, posts=posts)
 
 @app.route("/login", methods=['GET','POST'])
-@oid.loginhandler
 def login():
     if (g.user is not None) and (g.user.is_authenticated):
         return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
+        user = User.query.filter_by(nickname=form.nickname.data).first()
         session['remember_me'] = form.remember_me.data
-        return oid.try_login(form.openid.data, ask_for=['nickname','email'])
+        if 'remember_me' in session:
+            remember_me = session['remember_me']
+            session.pop('remember_me', None)
+        login_user(user,remember=remember_me)
+        return redirect('/index')
+#        return oid.try_login(form.openid.data, ask_for=['nickname','email'])
 #        flash("Login requested for OpenID = " + form.openid.data +" "+ str(form.remember_me.data))
-    return render_template("login.html", title="Sign In", form=form, providers=app.config['OPENID_PROVIDERS'])
+    return render_template("login.html", title="Sign In", form=form)
 
 @lm.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
-@oid.after_login
-def after_login(resp):
-    if resp.email is None or resp.email=="":
-        flash('Invalid login. Please try again.')
-        return redirect(url_for('login'))
-    user = User.query.filter_by(email=resp.email).first()
-    if user is None:
-        nickname = resp.neckname
-        if nickname is None or nickname=="":
-            nickname = resp.email.split('@')[0]
-        user = User(nickname=nickname, email=resp.email)
+@app.route('/register', methods=['GET','POST'])
+def register():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user = User(nickname=form.nickname.data)
+        user.generate_psw(form.password.data)
         db.session.add(user)
         db.session.commit()
-    remember_me = False
-    if 'remember_me' in session:
-        remember_me = session['remember_me']
-        session.pop('remember_me', None)
-    login_user(user, remember=remember_me)
-    return redirect(request.args.get('next') or url_for('index'))
+#        db.session.add(user.follow(user))
+#        db.session.commit()
+        flash(u'成功注册！')
+        login_user(user)
+        return redirect('index')
+    return render_template('register.html', title='Sign Up', form=form)
+
 
 @app.before_request
 def before_request():
     g.user = current_user
+    if g.user.is_authenticated:
+        g.user.last_seen = datetime.utcnow()
+        db.session.add(g.user)
+        db.session.commit()
 
 # 登出
 @app.route('/logout')
@@ -90,7 +96,22 @@ def user(nickname):
             ]
     return render_template("user.html", user=user, posts=posts)
 
-
+# 编辑个人信息
+@app.route('/edit', methods=['GET','POST'])
+@login_required
+def edit():
+    form = EditForm()
+    if form.validate_on_submit():
+        g.user.nickname = form.nickname.data
+        g.user.about_me = form.about_me.data
+        db.session.add(g.user)
+        db.session.commit()
+        flash("Your changes have been saved.")
+        return redirect(url_for("edit"))
+    else:
+        form.nickname.data = g.user.nickname
+        form.about_me.data = g.user.about_me
+    return render_template("edit.html", form=form)
 
 
 
