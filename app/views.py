@@ -3,19 +3,26 @@
 
 from app import app, db, lm
 from flask import render_template, flash, redirect, session, url_for, request, g
-from forms import LoginForm, RegisterForm, EditForm
-from models import User
+from forms import LoginForm, RegisterForm, EditForm, PostForm
+from models import User, Post
 from flask_login import login_user, logout_user, current_user,login_required
 from datetime import datetime
+from itsdangerous import URLSafeTimedSerializer
 
 
 
-@app.route("/")
-@app.route("/index")
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/index", methods=['GET', 'POST'])
 @login_required
 def index():
-#    return "Hello, World."
     user = g.user
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(body=form.post.data, timestamp=datetime.utcnow(), author=g.user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Your post is now live !')
+        return redirect(url_for('index'))
     posts = [
             # fake array of posts
             {
@@ -60,8 +67,9 @@ def register():
         user.generate_psw(form.password.data)
         db.session.add(user)
         db.session.commit()
-#        db.session.add(user.follow(user))
-#        db.session.commit()
+        # make the user follow him/herself
+        db.session.add(user.follow(user))
+        db.session.commit()
         flash(u'成功注册！')
         login_user(user)
         return redirect('index')
@@ -100,7 +108,7 @@ def user(nickname):
 @app.route('/edit', methods=['GET','POST'])
 @login_required
 def edit():
-    form = EditForm()
+    form = EditForm(g.user.nickname)
     if form.validate_on_submit():
         g.user.nickname = form.nickname.data
         g.user.about_me = form.about_me.data
@@ -112,6 +120,117 @@ def edit():
         form.nickname.data = g.user.nickname
         form.about_me.data = g.user.about_me
     return render_template("edit.html", form=form)
+
+# 定制HTTP错误处理器
+@app.errorhandler(404)
+def internal_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
+
+# 关注
+@app.route('/follow/<nickname>')
+@login_required
+def follow(nickname):
+    user = User.query.filter_by(nickname=nickname).first()
+    if user is None:
+        flash('User %s not found.' % nickname)
+        return redirect(url_for('index'))
+    if user == g.user:
+        flash('You can\'t follow youself!')
+        return redirect(url_for('user', nickname=nickname))
+    u = g.user.follow(user)
+    if u is None:
+        flash('Cannot follow' + nickname + '.')
+        return redirect(url_for('user', nickname=nickname))
+    db.session.add(u)
+    db.session.commit()
+    flash('You are now following ' + nickname + "!")
+    return redirect(url_for('user', nickname=nickname))
+
+# 取消关注
+@app.route('/unfollow/<nickname>')
+@login_required
+def unfollow(nickname):
+    user = User.query.filter_by(nickname=nickname).first()
+    if user is None:
+        flash('User %s not found.' % nickname)
+        return redirect(url_for('index'))
+    if user == g.user:
+        flash('You can\'t unfollow youself!')
+        return redirect(url_for('user', nickname=nickname))
+    u = g.user.unfollow(user)
+    if u is None:
+        flash('Cannot unfollow ' + nickname + '.')
+        return redirect(url_for('user', nickname=nickname))
+    db.session.add(u)
+    db.session.commit()
+    flash('You have stopped following ' + nickname + '!')
+    return redirect(url_for('user', nickname=nickname))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@app.route('/account', methods=['GET','POST'])
+@login_required
+def account():
+    ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    form = EmailForm()
+    if form.validate_on_submit():
+        g.user.email = form.email.data
+        g.user.email_comfirm = False
+        db.session.add(g.user)
+        db.session.commit()
+        subject = u'[Bavel]确认邮箱，此邮件不需要回复'
+        token_str = '~'.join([form.email.data, g.user.nickname])
+        token = ts.dumps(token_str)
+        confirm_url = url_for('confirm_email', token=token, _external=True)
+        send_email(form.email.data, subject, 'mail/confirm', user=g.user, confirm_url=confirm_url)
+        flash(u'确认邮件已发送至邮箱，请查收')
+        return redirect(url_for('index'))
+    return render_template('account.html',user=g.user, form=form)
 
 
 

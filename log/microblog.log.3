@@ -1,0 +1,57 @@
+2016-06-05 16:14:51,697 ERROR: Exception on /edit [POST] [in /home/flask_learn/flask/local/lib/python2.7/site-packages/flask/app.py: 1587]
+Traceback (most recent call last):
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/flask/app.py", line 1988, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/flask/app.py", line 1641, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/flask/app.py", line 1544, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/flask/app.py", line 1639, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/flask/app.py", line 1625, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/flask_login.py", line 792, in decorated_view
+    return func(*args, **kwargs)
+  File "/home/flask_learn/microblog/app/views.py", line 108, in edit
+    db.session.commit()
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/scoping.py", line 157, in do
+    return getattr(self.registry(), name)(*args, **kwargs)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/session.py", line 801, in commit
+    self.transaction.commit()
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/session.py", line 392, in commit
+    self._prepare_impl()
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/session.py", line 372, in _prepare_impl
+    self.session.flush()
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/session.py", line 2019, in flush
+    self._flush(objects)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/session.py", line 2137, in _flush
+    transaction.rollback(_capture_exception=True)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/util/langhelpers.py", line 60, in __exit__
+    compat.reraise(exc_type, exc_value, exc_tb)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/session.py", line 2101, in _flush
+    flush_context.execute()
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/unitofwork.py", line 373, in execute
+    rec.execute(self)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/unitofwork.py", line 532, in execute
+    uow
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/persistence.py", line 170, in save_obj
+    mapper, table, update)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/orm/persistence.py", line 706, in _emit_update_statements
+    execute(statement, multiparams)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/engine/base.py", line 914, in execute
+    return meth(self, multiparams, params)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/sql/elements.py", line 323, in _execute_on_connection
+    return connection._execute_clauseelement(self, multiparams, params)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/engine/base.py", line 1010, in _execute_clauseelement
+    compiled_sql, distilled_params
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/engine/base.py", line 1146, in _execute_context
+    context)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/engine/base.py", line 1341, in _handle_dbapi_exception
+    exc_info
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/util/compat.py", line 202, in raise_from_cause
+    reraise(type(exception), exception, tb=exc_tb, cause=cause)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/engine/base.py", line 1139, in _execute_context
+    context)
+  File "/home/flask_learn/flask/local/lib/python2.7/site-packages/sqlalchemy/engine/default.py", line 450, in do_execute
+    cursor.execute(statement, parameters)
+IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: user.nickname [SQL: u'UPDATE user SET nickname=?, about_me=? WHERE user.id = ?'] [parameters: (u'dump', u'', 2)]
