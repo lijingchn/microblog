@@ -3,13 +3,12 @@
 
 from app import app, db, lm
 from flask import render_template, flash, redirect, session, url_for, request, g
-from forms import LoginForm, RegisterForm, EditForm, PostForm
+from forms import LoginForm, RegisterForm, EditForm, PostForm, SearchForm
 from models import User, Post
 from flask_login import login_user, logout_user, current_user,login_required
 from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer
-from config import POSTS_PER_PAGE
-
+from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -69,7 +68,6 @@ def register():
         return redirect('index')
     return render_template('register.html', title='Sign Up', form=form)
 
-
 @app.before_request
 def before_request():
     g.user = current_user
@@ -77,6 +75,8 @@ def before_request():
         g.user.last_seen = datetime.utcnow()
         db.session.add(g.user)
         db.session.commit()
+        # 全文搜索
+        g.search_form = SearchForm()
 
 # 登出
 @app.route('/logout')
@@ -163,11 +163,19 @@ def unfollow(nickname):
     flash('You have stopped following ' + nickname + '!')
     return redirect(url_for('user', nickname=nickname))
 
+# 搜索
+@app.route('/search', methods=['POST'])
+@login_required
+def search():
+    if not g.search_form.validate_on_submit():
+        return redirect(url_for('index'))
+    return redirect(url_for('search_results', query=g.search_form.search.data))
 
-
-
-
-
+@app.route('/search_results/<query>')
+@login_required
+def search_results(query):
+    results = Post.query.whoosh_search(query, MAX_SEARCH_RESULTS).all()
+    return render_template('search_results.html', query=query, results=results)
 
 
 

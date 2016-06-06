@@ -28,3 +28,7 @@ ADMINS = ['337859457@qq.com']
 
 # pagination
 POSTS_PER_PAGE = 3
+
+# Set up full-text search database
+WHOOSH_BASE = os.path.join(basedir,'search.db')
+MAX_SEARCH_RESULTS = 50
