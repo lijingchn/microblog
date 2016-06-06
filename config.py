@@ -25,3 +25,6 @@ MAIL_PASSWORD = None
 
 # administrator list
 ADMINS = ['337859457@qq.com']
+
+# pagination
+POSTS_PER_PAGE = 3
