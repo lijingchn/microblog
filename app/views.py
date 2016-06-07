@@ -10,6 +10,9 @@ from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer
 from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS
 from emails import send_email
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -23,13 +26,9 @@ def index(page=1):
         post = Post(body=form.post.data, timestamp=datetime.utcnow(), author=g.user)
         db.session.add(post)
         db.session.commit()
-        flash('Your post is now live !')
+        flash('发布成功!')
         return redirect(url_for('index'))
-#    posts = g.user.followed_posts().all()
-#    posts = g.user.followed_posts().paginate(page, POSTS_PER_PAGE, False).items
     posts = g.user.followed_posts().paginate(page, POSTS_PER_PAGE, False)
-#    return render_template("index.html", user=user)
-#    return render_template("index.html", title="Home", user=user)
     return render_template("index.html", title="Home",user=user,form=form, posts=posts)
 
 @app.route("/login", methods=['GET','POST'])
@@ -45,8 +44,6 @@ def login():
             session.pop('remember_me', None)
         login_user(user,remember=remember_me)
         return redirect('/index')
-#        return oid.try_login(form.openid.data, ask_for=['nickname','email'])
-#        flash("Login requested for OpenID = " + form.openid.data +" "+ str(form.remember_me.data))
     return render_template("login.html", title="Sign In", form=form)
 
 @lm.user_loader
@@ -92,9 +89,10 @@ def logout():
 def user(nickname, page=1):
     user = User.query.filter_by(nickname=nickname).first()
     if user == None:
-        flash('User' + nickname + 'not found.')
+        flash(u'报告大王，找不到这个家伙╮(╯▽╰)╭')
         return redirect(url_for("index"))
-    posts = user.posts.paginate(page, POSTS_PER_PAGE, False)
+#    posts = user.posts.paginate(page, POSTS_PER_PAGE, False)
+    posts = user.posts.order_by(Post.timestamp.desc()).paginate(page, POSTS_PER_PAGE, False)
     return render_template("user.html", user=user, posts=posts)
 
 # 编辑个人信息

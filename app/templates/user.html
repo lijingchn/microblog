@@ -11,7 +11,7 @@
                 <p>{{user.about_me}}</p>
             {% endif %}
             {% if user.last_seen %}
-                <p><i>Last seen on:{{user.last_seen}}</i></p>
+                <p><em>Last seen:{{momentjs(user.last_seen).calendar()}}</em></p>
             {% endif %}
             <p>{{user.followers.count()}} follows |
             {% if user.id == g.user.id %}

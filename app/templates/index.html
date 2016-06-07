@@ -7,7 +7,7 @@
     {{form.hidden_tag()}}
     <table>
         <tr>
-            <td>Say something:</td>
+            <td>说点什么:</td>
             <td>{{form.post(size=30, maxlenth=140)}}</td>
             <td>
                 {% for error in form.errors.post %}
@@ -17,7 +17,7 @@
         </tr>
         <tr>
             <td></td>
-            <td><input type='submit' value='Post!'></td>
+            <td><input type='submit' value='发布'></td>
             <td></td>
         </tr>
     </table>
