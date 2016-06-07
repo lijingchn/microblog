@@ -229,6 +229,21 @@ def reconfirm_email(email):
     flash(u'确认邮件已发送至邮箱，请查收')
     return redirect(url_for('index'))
 
+# 删除blog
+@app.route("/delete/<int:id>")
+@login_required
+def delete(id):
+    post = Post.query.get(id)
+    if post == None:
+        flash("要删除的blog不存在～")
+        return redirect(url_for("index"))
+    if post.author.id != g.user.id:
+        flash("你只能删除自己的微博啊亲╭(╯3╰)╮")
+        return redirect(url_for("index"))
+    db.session.delete(post)
+    db.session.commit()
+    flash("删除成功～")
+    return redirect(url_for("index"))
 
 
 
