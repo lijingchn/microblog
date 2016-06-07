@@ -3,12 +3,13 @@
 
 from app import app, db, lm
 from flask import render_template, flash, redirect, session, url_for, request, g
-from forms import LoginForm, RegisterForm, EditForm, PostForm, SearchForm
+from forms import LoginForm, RegisterForm, EditForm, PostForm, SearchForm, EmailForm
 from models import User, Post
 from flask_login import login_user, logout_user, current_user,login_required
 from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer
 from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS
+from emails import send_email
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -177,42 +178,7 @@ def search_results(query):
     results = Post.query.whoosh_search(query, MAX_SEARCH_RESULTS).all()
     return render_template('search_results.html', query=query, results=results)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# 邮件
 @app.route('/account', methods=['GET','POST'])
 @login_required
 def account():
@@ -220,17 +186,79 @@ def account():
     form = EmailForm()
     if form.validate_on_submit():
         g.user.email = form.email.data
-        g.user.email_comfirm = False
+        g.user.email_confirm = False
         db.session.add(g.user)
         db.session.commit()
-        subject = u'[Bavel]确认邮箱，此邮件不需要回复'
+        subject = u'[Microblog]确认邮箱，此邮件不需要回复'
         token_str = '~'.join([form.email.data, g.user.nickname])
         token = ts.dumps(token_str)
         confirm_url = url_for('confirm_email', token=token, _external=True)
         send_email(form.email.data, subject, 'mail/confirm', user=g.user, confirm_url=confirm_url)
         flash(u'确认邮件已发送至邮箱，请查收')
         return redirect(url_for('index'))
-    return render_template('account.html',user=g.user, form=form)
+    return render_template('account.html', user=g.user, form=form)
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email_and_name = ts.loads(token, max_age=86400).split('~')
+    except:
+        abort(404)
+    email = email_and_name[0]
+    nickname = email_and_name[1]
+    user = User.query.filter_by(nickname=nickname).first_or_404()
+
+    user.email_confirm = True
+
+    db.session.add(user)
+    db.session.commit()
+    flash(u'您的邮箱已验证,%r' % user.nickname)
+    return redirect(url_for('index'))
+
+@app.route('/confirm_email/<email>')
+def reconfirm_email(email):
+    ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    token_str = '~'.join([email, g.user.nickname])
+    token = ts.dumps(token_str)
+    subject = u'[Microblog]确认邮箱，此邮件不需要回复'
+    confirm_url = url_for('confirm_email', token=token, _external=True)
+    send_email(email, subject, 'mail/confirm', user=g.user, confirm_url=confirm_url)
+    flash(u'确认邮件已发送至邮箱，请查收')
+    return redirect(url_for('index'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

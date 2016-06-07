@@ -8,23 +8,16 @@ SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir,'db_repository')
 
 CSRF_ENABLED = True
 SECRET_KEY = "you-will-never-guess"
-
-OPENID_PROVIDERS = [
-        {'name':'Google', 'url':'https://www.google.com/accounts/o8/id'},
-        { 'name': 'Yahoo', 'url': 'https://me.yahoo.com' },
-        { 'name': 'AOL', 'url': 'http://openid.aol.com/<username>' },
-        { 'name': 'Flickr', 'url': 'http://www.flickr.com/<username>' },
-        { 'name': 'MyOpenID', 'url': 'https://www.myopenid.com' }
-        ]
-
-# mail server settings
-MAIL_SERVER = 'localhost'
-MAIL_PORT = 25
-MAIL_USERNAME = None
-MAIL_PASSWORD = None
+MAIL_SERVER = 'smtp.qq.com'
+MAIL_PORT = 587                #国内的邮箱代理基本上端口都是25,但是国外的比如gmail可能有所不同，具体需要上网查询
+MAIL_USE_TLS = True
+#MAIL_USE_SSL = True
+MAIL_USERNAME = '337859457@qq.com'       #你的邮箱帐号，不需要@以及后面的部分
+MAIL_PASSWORD = 'quergtfjoyzybjgi'       #你的邮箱密码
 
 # administrator list
-ADMINS = ['337859457@qq.com']
+MAIL_DEFAULT_SENDER = [u'Microblog Team', '337859457@qq.com']
+FLASKY_MAIL_SUBJECT_PREFIX = '[Microblog]'
 
 # pagination
 POSTS_PER_PAGE = 3
@@ -32,3 +25,4 @@ POSTS_PER_PAGE = 3
 # Set up full-text search database
 WHOOSH_BASE = os.path.join(basedir,'search.db')
 MAX_SEARCH_RESULTS = 50
+MAX_INT = 10000

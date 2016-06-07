@@ -1,0 +1,8 @@
+您好，{{user.nickname}}
+欢迎使用Microblog，请点击下面的链接完成注册！
+{{confirm_url}}
+
+如有疑问或建议请发邮件咨询。
+-----------
+by Microblog
+lijingjing.chn@gmail.com

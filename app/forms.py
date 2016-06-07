@@ -3,7 +3,7 @@
 
 from flask_wtf import Form
 from wtforms import StringField, BooleanField, TextAreaField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms.validators import DataRequired, Length, EqualTo, Email
 from app.models import User, Post
 
 #class LoginForm(Form):
@@ -68,7 +68,8 @@ class PostForm(Form):
 class SearchForm(Form):
     search = StringField('search', validators=[DataRequired()])
 
-
+class EmailForm(Form):
+    email = StringField('email', validators=[DataRequired(), Email()])
 
 
 
