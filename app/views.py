@@ -1,19 +1,23 @@
 #!/home/flask_learn/flask/bin/python
 # encoding:utf-8
 
-from app import app, db, lm
+from app import app, db, lm, babel
 from flask import render_template, flash, redirect, session, url_for, request, g
 from forms import LoginForm, RegisterForm, EditForm, PostForm, SearchForm, EmailForm
 from models import User, Post
 from flask_login import login_user, logout_user, current_user,login_required
 from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer
-from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS
+from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS, LANGUAGES
 from emails import send_email
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+
+@babel.localeselector
+def get_locale():
+    return request.accept_languages.best_match(LANGUAGES.keys())
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/index", methods=['GET', 'POST'])

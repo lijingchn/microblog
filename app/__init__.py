@@ -7,9 +7,11 @@ from flask_login import LoginManager
 from config import basedir
 from flask_mail import Mail
 from momentjs import momentjs
+from flask_babel import Babel
 
 
 app = Flask(__name__)
+babel = Babel(app)
 app.config.from_object('config')
 app.jinja_env.globals['momentjs'] = momentjs
 db = SQLAlchemy(app)

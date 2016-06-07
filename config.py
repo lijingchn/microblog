@@ -20,9 +20,16 @@ MAIL_DEFAULT_SENDER = [u'Microblog Team', '337859457@qq.com']
 FLASKY_MAIL_SUBJECT_PREFIX = '[Microblog]'
 
 # pagination
-POSTS_PER_PAGE = 3
+POSTS_PER_PAGE = 6
 
 # Set up full-text search database
 WHOOSH_BASE = os.path.join(basedir,'search.db')
 MAX_SEARCH_RESULTS = 50
 MAX_INT = 10000
+
+# Internationalization
+# available languages
+LANGUAGES = {
+        'en':'English',
+        'es':'Español'
+        }
