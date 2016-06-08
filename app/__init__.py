@@ -4,6 +4,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_restful import Api
 from config import basedir
 from flask_mail import Mail
 from momentjs import momentjs
@@ -12,6 +13,7 @@ from flask_babel import Babel
 
 app = Flask(__name__)
 babel = Babel(app)
+api = Api(app)
 app.config.from_object('config')
 app.jinja_env.globals['momentjs'] = momentjs
 db = SQLAlchemy(app)

@@ -1,15 +1,16 @@
 #!/home/flask_learn/flask/bin/python
 # encoding:utf-8
 
-from app import app, db, lm, babel
-from flask import render_template, flash, redirect, session, url_for, request, g
+from app import app, db, lm, babel, api
+from flask import render_template, flash, redirect, session, url_for, request, g, jsonify
 from forms import LoginForm, RegisterForm, EditForm, PostForm, SearchForm, EmailForm
 from models import User, Post
 from flask_login import login_user, logout_user, current_user,login_required
 from datetime import datetime
 from itsdangerous import URLSafeTimedSerializer
-from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS, LANGUAGES
+from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS, LANGUAGES, MAX_INT
 from emails import send_email
+import random
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -109,7 +110,7 @@ def edit():
         g.user.about_me = form.about_me.data
         db.session.add(g.user)
         db.session.commit()
-        flash("Your changes have been saved.")
+        flash(u"修改成功！")
         return redirect(url_for("edit"))
     else:
         form.nickname.data = g.user.nickname
@@ -245,10 +246,51 @@ def delete(id):
     flash("删除成功～")
     return redirect(url_for("index"))
 
+# 发现
+@app.route('/random_find')
+@login_required
+def random_find():
+    users = User.query.all()
+    random_seed = random.randint(1,MAX_INT) % len(users)
+    user = users[random_seed]
+    return redirect(url_for('user', nickname=user.nickname))
 
+# log
+@app.route('/documents/log')
+def log():
+    return render_template('log.html')
 
+# api
+# 这里还有一点问题
+@app.route('/api/user/<nickname>/posts/')
+def get_posts(nickname):
+    user = User.query.filter_by(nickname=nickname).first()
+    posts = user.posts
+    return jsonify({'posts':[post.post_to_json() for post in posts]})
 
+@app.route('/api/user/<nickname>/followed_posts/')
+def all_followed_posts(nickname):
+    user = User.query.filter_by(nickname=nickname).first()
+    posts = user.followed_posts()
+    return jsonify({'followed_posts':[post.post_to_json() for post in posts]})
 
+@app.route('/api/posts/')
+def all_posts():
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return jsonify({'all posts':[post.post_to_json() for post in posts]})
+
+@app.route('/documents/api_v1.0')
+def api_v1():
+    return render_template('api_v1.html')
+
+@app.route('/api/user/<nickname>/followed/')
+def followed(nickname):
+    user = User.query.filter_by(nickname=nickname).first()
+    followed_people = []
+    for u in user.followed:
+        if u.nickname != nickname:
+            followed_people.append(u.user_to_json())
+    return jsonify({'followed':followed_people})
 
 
 

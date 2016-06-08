@@ -10,4 +10,5 @@ flask-babel
 guess_language
 flipflop
 coverage
+flask-restful
 

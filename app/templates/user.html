@@ -15,11 +15,11 @@
             {% endif %}
             <p>{{user.followers.count()}} follows |
             {% if user.id == g.user.id %}
-            <p><a href={{url_for('edit')}}>Edit</a></p>
+            <p><a href={{url_for('edit')}}>编辑个人资料</a></p>
             {% elif not g.user.is_following(user) %}
-                <a href="{{url_for('follow', nickname=user.nickname)}}">Follow</a>
+                <a href="{{url_for('follow', nickname=user.nickname)}}">关注</a>
             {% else %}
-                <a href="{{url_for('unfollow', nickname=user.nickname)}}">Unfollow</a>
+                <a href="{{url_for('unfollow', nickname=user.nickname)}}">取消关注</a>
             {% endif %}
             </p>
         </td>
@@ -32,7 +32,7 @@
 {% for post in posts.items %}
     {% include 'post.html' %}
 {% endfor %}
-{% if posts.has_prev %}<a href="{{ url_for('user', nickname=user.nickname, page=posts.prev_num)}}"><< Newer posts</a>{% else %}<< Newer posts{% endif %} |
-{% if posts.has_next %}<a href="{{ url_for('user', nickname=user.nickname, page=posts.next_num)}}">Older posts >></a>{% else %}Older posts >>{% endif %}
+{% if posts.has_prev %}<a href="{{ url_for('user', nickname=user.nickname, page=posts.prev_num)}}"><< 上一页</a>{% else %}<< Newer posts{% endif %} |
+{% if posts.has_next %}<a href="{{ url_for('user', nickname=user.nickname, page=posts.next_num)}}">下一页 >></a>{% else %}Older posts >>{% endif %}
 {% endblock %}
 
