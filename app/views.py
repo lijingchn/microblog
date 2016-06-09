@@ -2,7 +2,8 @@
 # encoding:utf-8
 
 from app import app, db, lm, babel, api
-from flask import render_template, flash, redirect, session, url_for, request, g, jsonify
+from flask_restful import Resource, reqparse
+from flask import render_template, flash, redirect, session, url_for, request, g, jsonify, abort
 from forms import LoginForm, RegisterForm, EditForm, PostForm, SearchForm, EmailForm
 from models import User, Post
 from flask_login import login_user, logout_user, current_user,login_required
@@ -11,6 +12,7 @@ from itsdangerous import URLSafeTimedSerializer
 from config import POSTS_PER_PAGE, MAX_SEARCH_RESULTS, LANGUAGES, MAX_INT
 from emails import send_email
 import random
+import jieba
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -261,38 +263,109 @@ def log():
     return render_template('log.html')
 
 # api
+#
 # 这里还有一点问题
-@app.route('/api/user/<nickname>/posts/')
-def get_posts(nickname):
-    user = User.query.filter_by(nickname=nickname).first()
-    posts = user.posts
-    return jsonify({'posts':[post.post_to_json() for post in posts]})
+#@app.route('/api/user/<nickname>/posts/')
+#def get_posts(nickname):
+#    user = User.query.filter_by(nickname=nickname).first()
+#    posts = user.posts
+#    return jsonify({'posts':[post.post_to_json() for post in posts]})
 
-@app.route('/api/user/<nickname>/followed_posts/')
-def all_followed_posts(nickname):
-    user = User.query.filter_by(nickname=nickname).first()
-    posts = user.followed_posts()
-    return jsonify({'followed_posts':[post.post_to_json() for post in posts]})
+#@app.route('/api/user/<nickname>/followed_posts/')
+#def all_followed_posts(nickname):
+#    user = User.query.filter_by(nickname=nickname).first()
+#    posts = user.followed_posts()
+#    return jsonify({'followed_posts':[post.post_to_json() for post in posts]})
 
-@app.route('/api/posts/')
-def all_posts():
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
-    return jsonify({'all posts':[post.post_to_json() for post in posts]})
+#@app.route('/api/posts/')
+#def all_posts():
+#    posts = Post.query.order_by(Post.timestamp.desc()).all()
+#    return jsonify({'all posts':[post.post_to_json() for post in posts]})
 
 @app.route('/documents/api_v1.0')
 def api_v1():
     return render_template('api_v1.html')
 
-@app.route('/api/user/<nickname>/followed/')
-def followed(nickname):
-    user = User.query.filter_by(nickname=nickname).first()
-    followed_people = []
-    for u in user.followed:
-        if u.nickname != nickname:
-            followed_people.append(u.user_to_json())
-    return jsonify({'followed':followed_people})
+#@app.route('/api/user/<nickname>/followed/')
+#def followed(nickname):
+#    user = User.query.filter_by(nickname=nickname).first()
+#    followed_people = []
+#    for u in user.followed:
+#        if u.nickname != nickname:
+#            followed_people.append(u.user_to_json())
+#    return jsonify({'followed':followed_people})
 
 
+@app.route('/generate_api_key')
+def generate_api_key():
+    user = g.user
+    user.generate_api_key()
+    db.session.add(user)
+    db.session.commit()
+    return redirect(url_for('account'))
+
+class PostListApi(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('body', type=str, required=True, location='json')
+        self.reqparse.add_argument('api_key', type=str, required=True, location='json')
+        super(PostListApi, self).__init__()
+
+    def get(self, nickname):
+        user = User.query.filter_by(nickname=nickname).first()
+        if user:
+            return jsonify({'posts':['post.post_to_json() for post in user.posts']})
+
+    def post(self, nickname):
+        user = User.query.filter_by(nickname=nickname).first()
+        if user.api_key != self.reqparse.parse_args()['api_key']:
+            return {"result":"deny, api_key is not fit"}
+        if user:
+            post = Post(
+                    body = self.reqparse.parse_args()['body'],
+                    timestamp = datetime.utcnow(),
+                    author = user
+                    )
+            db.session.add(post)
+            db.session.commit()
+            return {'result':'new post had been post'}
+        else:
+            abort(404)
+api.add_resource(PostListApi,'/api/restful/posts/<nickname>', endpoint='restful_api')
+
+
+#@app.route('/lab/spritz')
+#@app.route('/lab/spritz/<language>')
+#def spritz(language='chinese'):
+#    if language == "english":
+#        f = open('app/static/file/article_eg.txt','r')
+#        article = f.read()
+#        f.close()
+#        paragraphs = article.split("\n")
+#        words = []
+#        for para in paragraphs:
+#            words.extend(para.split(' '))
+#        return render_template('spritz.html', paragraphs=paragraphs, words=words, length=len(words), version='en')
+#    if language == "chinese":
+#        with open('app/static/file/article_ch.txt', 'r') as f:
+#            article = f.read()
+#        article = article.decode('utf-8')
+#        paragraphs = article.split("\n")
+#        re_attach_article = ""
+#        for p in paragraphs:
+#            re_attach_article += p
+#        words = jieba.lcut(re_attach_article)
+#        return render_template('spritz.html', paragraphs=paragraphs, words=words, length=len(words), version='ch')
+#    if language == "chinese_led":
+#        with open('app/static/file/article_ch.txt', 'r') as f:
+#            article = f.read()
+#        clean_article = article.replace(' ','')
+#        clean_article = clean_article.replace('\n','')
+#        clean_article = clean_article.decode('utf-8')
+#        article = article.decode('utf-8')
+#        paragraphs = article.split("\n")
+#        words = list(clean_article)
+#        return render_template('spritz.html', paragraphs=paragraphs, words=words, length=len(words), version='led')
 
 
 

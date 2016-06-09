@@ -5,6 +5,8 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import hashlib
 from hashlib import md5
+from markdown import markdown
+import bleach
 
 from app import app
 import sys
@@ -14,20 +16,6 @@ if sys.version_info >= (3, 0):
 else:
     enable_search = True
     import flask_whooshalchemy as whooshalchemy
-
-class Post(db.Model):
-    __searchable__ = ['body']
-
-    id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    def __repr__(self):
-        return '<Post %r>' % (self.body)
-
-if enable_search:
-    whooshalchemy.whoosh_index(app, Post)
 
 followers = db.Table('followers',
         db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
@@ -43,6 +31,7 @@ class User(db.Model):
     hash_psw = db.Column(db.String(128))
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime)
+    api_key = db.Column(db.String(40))
     followed = db.relationship(
             'User',
             secondary = followers,
@@ -69,6 +58,9 @@ class User(db.Model):
 
     def generate_psw(self, password):
         self.hash_psw = generate_password_hash(password)
+
+    def generate_api_key(self):
+        self.api_key = hashlib.sha1(str(self.id) + app.config['SALT']).hexdigest()
 
     def verify_password(self, password):
         return check_password_hash(self.hash_psw, password)
@@ -105,9 +97,49 @@ class User(db.Model):
     def followed_posts(self):
         return Post.query.join(followers, (followers.c.followed_id == Post.user_id)).filter(followers.c.follower_id==self.id).order_by(Post.timestamp.desc())
 
+    def user_to_json(self):
+        json_user = {
+                "user_id": self.id,
+                "nickname": self.nickname,
+                "about_me": self.about_me,
+                "last_seen": self.last_seen
+                }
+        return json_user
 
 
     def __repr__(self):
         return '<User %r>' % (self.nickname)
+
+
+class Post(db.Model):
+    __searchable__ = ['body']
+    id = db.Column(db.Integer, primary_key = True)
+    body = db.Column(db.String(140))
+    timestamp = db.Column(db.DateTime)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    @staticmethod
+    def on_changed_body(target, value, oldvalue, initiator):
+        allowed_tags = ['a','abbr','acronym','b','blockqoute','code','em','i','li','ol','pre','strong','ul','h1','h2','h2','h3','p']
+        target.body_html = bleach.linkify(bleach.clean(markdown(value, output_format='html'),
+            tags=allowed_tags, strip=True))
+
+    def __repr__(self):
+        return '<Essay No.%d>' % (self.id)
+
+if enable_search:
+    whooshalchemy.whoosh_index(app, Post)
+
+
+
+
+
+
+
+
+
+
+
+
 
 

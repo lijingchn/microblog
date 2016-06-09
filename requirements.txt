@@ -11,4 +11,6 @@ guess_language
 flipflop
 coverage
 flask-restful
+markdown
+bleach
 
