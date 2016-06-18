@@ -7,7 +7,7 @@
     {{form.hidden_tag()}}
     <table>
         <tr>
-            <td>说点什么:</td>
+            <td>说点什么: </td>
             <td>{{form.post(size=30, maxlenth=140)}}</td>
             <td>
                 {% for error in form.errors.post %}

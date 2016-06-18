@@ -9,9 +9,11 @@ from config import basedir
 from flask_mail import Mail
 from momentjs import momentjs
 from flask_babel import Babel
+from flask_bootstrap import Bootstrap
 
 
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
 babel = Babel(app)
 api = Api(app)
 app.config.from_object('config')
