@@ -377,3 +377,7 @@ IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: user.nickname
 2016-06-18 23:15:26,085 INFO: microblog startup [in /home/flask_learn/microblog/app/__init__.py: 35]
 2016-06-18 23:19:57,256 INFO: microblog startup [in /home/flask_learn/microblog/app/__init__.py: 35]
 2016-06-18 23:19:57,509 INFO: microblog startup [in /home/flask_learn/microblog/app/__init__.py: 35]
+2016-06-18 23:33:26,731 INFO: microblog startup [in /home/flask_learn/microblog/app/__init__.py: 35]
+2016-06-18 23:33:27,011 INFO: microblog startup [in /home/flask_learn/microblog/app/__init__.py: 35]
+2016-06-18 23:34:54,148 INFO: microblog startup [in /home/flask_learn/microblog/app/__init__.py: 35]
+2016-06-18 23:34:54,381 INFO: microblog startup [in /home/flask_learn/microblog/app/__init__.py: 35]
