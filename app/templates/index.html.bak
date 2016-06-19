@@ -5,9 +5,16 @@
 <h1>Hello, {{g.user.nickname}}!</h1>
 <form action='' class="form-forizontal" method="post" name="post">
     {{form.hidden_tag()}}
+  <div class="form-group">
+     <label for="login-username" class="col-sm-4 control-label">说点什么吧：</label>
+     <div class="col-sm-6">
+      <input type="text" class="form-control" id="login-username" placeholder="说点什么吧～">
+     </div>
+  </div>
+
     <table>
         <tr>
-            <label class="col-sm-1 control-label">说点什么</label>
+            <td>说点什么: </td>
             <td>{{form.post(size=30, maxlenth=140)}}</td>
             <td>
                 {% for error in form.errors.post %}
@@ -16,6 +23,7 @@
             </td>
         </tr>
         <tr>
+            <td></td>
             <td><input type='submit' value='发布'></td>
             <td></td>
         </tr>
